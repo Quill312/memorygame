@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Game Ghi nhớ số 1→9</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 20px;
+  }
+  #board {
+    display: grid;
+    grid-template-columns: repeat(3, 80px);
+    grid-gap: 10px;
+    justify-content: center;
+    margin-bottom: 15px;
+  }
+  .cell {
+    width: 80px;
+    height: 80px;
+    background-color: #eee;
+    font-size: 36px;
+    line-height: 80px;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 8px;
+    transition: background-color 0.3s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  }
+  .cell.disabled {
+    background-color: lightgreen;
+    cursor: default;
+  }
+  .cell.wrong {
+    animation: shake 0.3s;
+    background-color: #f99;
+  }
+  #countdown {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: red;
+  }
+  #message {
+    font-size: 20px;
+    color: blue;
+    margin-top: 15px;
+  }
+  #restartBtn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border:none;
+    background-color: #337ab7;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  #restartBtn:hover {
+    background-color: #286090;
+  }
+  @keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    50% { transform: translateX(8px); }
+    75% { transform: translateX(-8px); }
+    100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+
+<h1>Game Ghi nhớ số 1→9</h1>
+<div id="countdown">Lật úp sau: 5 giây</div>
+<div id="board"></div>
+<button id="restartBtn">Restart Game</button>
+<div id="message"></div>
+
+<script>
+  const board = document.getElementById('board');
+  const countdownEl = document.getElementById('countdown');
+  const messageEl = document.getElementById('message');
+  const restartBtn = document.getElementById('restartBtn');
+
+  let numbers = [];
+  let currentTarget = 1;
+  let countdown = 5;
+  let countdownInterval;
+
+  function shuffle(arr) {
+    for(let i = arr.length -1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i+1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+  }
+
+  function createBoard() {
+    board.innerHTML = '';
+    numbers = Array.from({length: 9}, (_, i) => i + 1);
+    shuffle(numbers);
+    currentTarget = 1;
+    messageEl.textContent = '';
+    countdown = 5;
+    countdownEl.textContent = `Lật úp sau: ${countdown} giây`;
+
+    for(let i=0; i < 9; i++) {
+      const cell = document.createElement('div');
+      cell.classList.add('cell');
+      cell.textContent = numbers[i];
+      cell.dataset.number = numbers[i];
+      cell.addEventListener('click', () => onCellClick(cell));
+      board.appendChild(cell);
+    }
+
+    startCountdown();
+  }
+
+  function startCountdown() {
+    countdownInterval = setInterval(() => {
+      countdown--;
+      if(countdown > 0) {
+        countdownEl.textContent = `Lật úp sau: ${countdown} giây`;
+      } else {
+        countdownEl.textContent = 'Bắt đầu chơi!';
+        clearInterval(countdownInterval);
+        hideNumbers();
+      }
+    }, 1000);
+  }
+
+  function hideNumbers() {
+    const cells = document.querySelectorAll('.cell');
+    cells.forEach(cell => {
+      cell.textContent = '?';
+      cell.classList.remove('disabled', 'wrong');
+      cell.style.backgroundColor = '#eee';
+      cell.style.pointerEvents = 'auto';
+    });
+  }
+
+  function onCellClick(cell) {
+    const num = parseInt(cell.dataset.number);
+    if (num === currentTarget) {
+      cell.textContent = num;
+      cell.classList.add('disabled');
+      cell.style.backgroundColor = 'lightgreen';
+      cell.style.pointerEvents = 'none';
+      currentTarget++;
+      if (currentTarget > 9) {
+        messageEl.textContent = '🎉 Bạn đã hoàn thành!';
+      }
+    } else {
+      shake(cell);
+    }
+  }
+
+  function shake(element) {
+    element.classList.add('wrong');
+    setTimeout(() => {
+      element.classList.remove('wrong');
+    }, 300);
+  }
+
+  restartBtn.addEventListener('click', () => {
+    clearInterval(countdownInterval);
+    createBoard();
+  });
+
+  createBoard();
+</script>
+
+</body>
+</html>
